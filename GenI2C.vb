@@ -61,7 +61,6 @@ Module GenI2C
             End While
 
             Device = "Device (" & TPAD & ")"
-            Console.WriteLine()
             Matched = False
             line = 0
             i = 0
@@ -120,11 +119,14 @@ Module GenI2C
             End While
             FileClose()
             If Matched = False Then
+                Console.WriteLine()
                 Console.WriteLine("This is not a Device that exists in the DSDT")
                 Console.WriteLine("Exiting")
                 Console.ReadLine()
                 End
-            Else Analysis()
+            Else
+                Console.WriteLine()
+                Analysis()
             End If
         Catch ex As Exception
             Console.WriteLine()
