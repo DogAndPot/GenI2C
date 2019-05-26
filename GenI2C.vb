@@ -1,6 +1,6 @@
 ﻿Imports System.IO
 Imports System.Text
-Module Module1
+Module GenI2C
 
     Public TPAD, Device, DSDTFile, Paranthesesopen, Paranthesesclose, DSDTLine, Spacing, APICNAME, SLAVName, GPIONAME As String
     Dim Code(), ManualGPIO(8), ManualAPIC(6) As String
@@ -24,18 +24,25 @@ Module Module1
             'http://patorjk.com Impossible
             Console.WriteLine("")
             While True
-                Console.Write("File Path: ")
+                Console.Write("File Path (Drag and Drop the dsl file into the Form) : ")
                 DSDTFile = Console.ReadLine()
                 Try
                     If Dir(DSDTFile) <> "" Then
-                        Console.WriteLine(Dir(DSDTFile))
-                        Exit While
+                        If InStr(Dir(DSDTFile), ".dsl") > 0 Then
+                            Exit While
+                        ElseIf InStr(Dir(DSDTFile), ".aml") > 0 Then
+                            Console.WriteLine("AML files aren't supported! Please input again!")
+                            Console.WriteLine()
+                        Else
+                            Console.WriteLine("Unknown File! Please input again!")
+                            Console.WriteLine()
+                        End If
                     Else
-                        Console.WriteLine("File doesn't exist, please input again")
+                        Console.WriteLine("File doesn't exist, please input again!")
                         Console.WriteLine()
                     End If
                 Catch ex As Exception
-                    Console.WriteLine("Illegal Characters exists, please input again")
+                    Console.WriteLine("Illegal Characters exists, please input again!")
                     Console.WriteLine()
                 End Try
             End While
