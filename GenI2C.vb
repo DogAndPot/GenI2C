@@ -48,9 +48,18 @@ Module GenI2C
             End While
             Console.WriteLine("")
             Console.WriteLine("Search for a Device")
-            Console.WriteLine()
-            Console.Write("Device: ")
-            TPAD = Console.ReadLine()
+            While True
+                Console.WriteLine()
+                Console.Write("Device: ")
+                TPAD = Console.ReadLine()
+                If Len(TPAD) = 4 Then
+                    Exit While
+                Else
+                    Console.WriteLine()
+                    Console.WriteLine("Please Input your device name correctly (e.g. " & Chr(34) & "TPD0" & Chr(34) & ")!")
+                End If
+            End While
+
             Device = "Device (" & TPAD & ")"
             Console.WriteLine()
             Matched = False
@@ -111,8 +120,10 @@ Module GenI2C
             End While
             FileClose()
             If Matched = False Then
-                Console.WriteLine("No Device found")
-                Console.WriteLine()
+                Console.WriteLine("This is not a Device that exists in the DSDT")
+                Console.WriteLine("Exiting")
+                Console.ReadLine()
+                End
             Else Analysis()
             End If
         Catch ex As Exception
@@ -218,14 +229,16 @@ Module GenI2C
             Console.WriteLine("Choose the mode you'd like to patch")
             Console.WriteLine()
             Console.WriteLine("1) Interrupt (APIC or GPIO)")
-            Console.WriteLine("2) Polling")
+            Console.WriteLine("2) Polling (Will be set back to APIC if supported)")
             Console.WriteLine()
             Console.Write("Selection: ")
             Dim Choice As Integer = Console.ReadLine()
             If Choice = 1 Then
                 InterruptEnabled = True
+                Console.WriteLine()
             ElseIf Choice = 2 Then
                 PollingEnabled = True
+                Console.WriteLine()
             Else
                 Console.WriteLine()
                 Console.WriteLine("Undefined Behaviour, Exiting")
@@ -240,16 +253,31 @@ Module GenI2C
                     APIC2GPIO()
                     PatchCRS2GPIO()
                 ElseIf PollingEnabled = True Then
-                    PatchCRS2APIC()
+                    If Hetero = True Then
+                        APICNAME = "SBFX"
+                        PatchCRS2APIC()
+                    Else
+                        PatchCRS2APIC()
+                    End If
                 End If
             ElseIf ExAPIC = True And APICPIN <= 47 And APICPIN >= 24 Then '<= 0x2F Group A & E
                 Console.WriteLine("APIC Pin value < 2F, Native APIC Supported, using instead")
-                PatchCRS2APIC()
+                If Hetero = True Then
+                    APICNAME = "SBFX"
+                    PatchCRS2APIC()
+                Else
+                    PatchCRS2APIC()
+                End If
             ElseIf ExAPIC = True And ExGPIO = True And (APICPIN > 47 Or APICPIN = 0) Then
                 If InterruptEnabled = True Then
                     PatchCRS2GPIO()
                 ElseIf PollingEnabled = True Then
-                    PatchCRS2APIC()
+                    If Hetero = True Then
+                        APICNAME = "SBFX"
+                        PatchCRS2APIC()
+                    Else
+                        PatchCRS2APIC()
+                    End If
                 End If
             ElseIf ExAPIC = False And ExGPIO = True Then
                 If InterruptEnabled = True Then
@@ -455,8 +483,6 @@ Module GenI2C
     Sub GenAPIC()
         Try
             If PollingEnabled = True And Hetero = True Then
-                APICPIN = 63
-                APICNAME = "SBFX"
                 ManualAPIC(0) = Spacing & "Name (SBFX, ResourceTemplate ()"
             ElseIf InterruptEnabled = True And Hetero = True Then
                 ManualAPIC(0) = Spacing & "Name (SBFX, ResourceTemplate ()"
@@ -532,7 +558,6 @@ Module GenI2C
             For CheckConbLine = (CheckConbLine + 6) To (CheckConbLine + 9)
                 Code(CheckConbLine) = ""
             Next
-            GenAPIC()
         Catch ex As Exception
             Console.WriteLine()
             Console.WriteLine("Unknown error, please open an issue and provide your files")
