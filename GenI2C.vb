@@ -255,21 +255,13 @@ Module GenI2C
                     APIC2GPIO()
                     PatchCRS2GPIO()
                 ElseIf PollingEnabled = True Then
-                    If Hetero = True Then
-                        APICNAME = "SBFX"
-                        PatchCRS2APIC()
-                    Else
-                        PatchCRS2APIC()
-                    End If
+                    If Hetero = True Then APICNAME = "SBFX"
+                    PatchCRS2APIC()
                 End If
             ElseIf ExAPIC = True And APICPIN <= 47 And APICPIN >= 24 Then '<= 0x2F Group A & E
                 Console.WriteLine("APIC Pin value < 2F, Native APIC Supported, using instead")
-                If Hetero = True Then
-                    APICNAME = "SBFX"
-                    PatchCRS2APIC()
-                Else
-                    PatchCRS2APIC()
-                End If
+                If Hetero = True Then APICNAME = "SBFX"
+                PatchCRS2APIC()
             ElseIf ExAPIC = True And ExGPIO = True And (APICPIN > 47 Or APICPIN = 0) Then
                 If InterruptEnabled = True Then
                     PatchCRS2GPIO()
@@ -277,12 +269,8 @@ Module GenI2C
                     If APICPIN = 0 Then
                         Console.WriteLine("APIC Pin size uncertain, could be either APIC or polling")
                     End If
-                    If Hetero = True Then
-                        APICNAME = "SBFX"
-                        PatchCRS2APIC()
-                    Else
-                        PatchCRS2APIC()
-                    End If
+                    If Hetero = True Then APICNAME = "SBFX"
+                    PatchCRS2APIC()
                 End If
             ElseIf ExAPIC = False And ExGPIO = True Then
                 If InterruptEnabled = True Then
@@ -321,34 +309,26 @@ Module GenI2C
                     End While
                     If APICPIN >= 24 And APICPIN <= 47 Then
                         Console.WriteLine("APIC Pin value < 2F, Native APIC Supported, using instead")
-                        If Hetero = True Then
-                            APICNAME = "SBFX"
-                            PatchCRS2APIC()
-                        Else
-                            PatchCRS2APIC()
-                        End If
+                        If Hetero = True Then APICNAME = "SBFX"
+                        PatchCRS2APIC()
                     Else
                         GPIONAME = "SBFG"
                         APIC2GPIO()
                         PatchCRS2GPIO()
                     End If
                 ElseIf PollingEnabled = True Then
-                    If Hetero = True Then
-                        APICNAME = "SBFX"
-                        PatchCRS2APIC() ' Could be either Polling or APIC
-                    Else
-                        PatchCRS2APIC() ' Could be either Polling or APIC
-                    End If
-
+                    Console.WriteLine("APIC Pin size uncertain, could be either APIC or polling")
+                    If Hetero = True Then APICNAME = "SBFX"
+                    PatchCRS2APIC()
                 End If
-            ElseIf ExAPIC = False And ExGPIO = False Then ' I don't think this situation exists
+            ElseIf ExAPIC = False And ExGPIO = False And ExSLAV = True Then ' I don't think this situation exists
                 If InterruptEnabled = True Then
                     Console.WriteLine("No native APIC found, failed to extract APIC Pin. Please input your APIC Pin in Hex")
                     Console.Write("APIC Pin: ")
                     APICPIN = Convert.ToInt32(Console.ReadLine(), 16)
                     While APICPIN < 24 Or APICPIN > 119
                         Console.WriteLine()
-                        Console.WriteLine("APICPIN out of range!")
+                        Console.WriteLine("APIC Pin out of range!")
                         Console.WriteLine("Select your choice:")
                         Console.WriteLine("1) Input again")
                         Console.WriteLine("2) Exit")
