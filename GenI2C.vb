@@ -274,6 +274,9 @@ Module GenI2C
                 If InterruptEnabled = True Then
                     PatchCRS2GPIO()
                 ElseIf PollingEnabled = True Then
+                    If APICPIN = 0 Then
+                        Console.WriteLine("APIC Pin size uncertain, could be either APIC or polling")
+                    End If
                     If Hetero = True Then
                         APICNAME = "SBFX"
                         PatchCRS2APIC()
@@ -286,6 +289,7 @@ Module GenI2C
                     PatchCRS2GPIO()
                 End If
                 If PollingEnabled = True Then
+                    APICPIN = 63
                     APICNAME = "SBFI"
                     PatchCRS2APIC()
                 End If
