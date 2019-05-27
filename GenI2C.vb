@@ -251,7 +251,7 @@ Module GenI2C
             If ExAPIC = True And ExGPIO = False And APICPIN > 47 Then
                 If InterruptEnabled = True Then
                     Console.WriteLine("No native GpioInt found, Generating instead")
-                    GPIONAME = "SBFG"
+                    GPIONAME = "SBFP"
                     APIC2GPIO()
                     PatchCRS2GPIO()
                 ElseIf PollingEnabled = True Then
@@ -262,16 +262,6 @@ Module GenI2C
                 Console.WriteLine("APIC Pin value < 2F, Native APIC Supported, using instead")
                 If Hetero = True Then APICNAME = "SBFX"
                 PatchCRS2APIC()
-            ElseIf ExAPIC = True And ExGPIO = True And (APICPIN > 47 Or APICPIN = 0) Then
-                If InterruptEnabled = True Then
-                    PatchCRS2GPIO()
-                ElseIf PollingEnabled = True Then
-                    If APICPIN = 0 Then
-                        Console.WriteLine("APIC Pin size uncertain, could be either APIC or polling")
-                    End If
-                    If Hetero = True Then APICNAME = "SBFX"
-                    PatchCRS2APIC()
-                End If
             ElseIf ExAPIC = False And ExGPIO = True Then
                 If InterruptEnabled = True Then
                     PatchCRS2GPIO()
@@ -281,7 +271,7 @@ Module GenI2C
                     APICNAME = "SBFX"
                     PatchCRS2APIC()
                 End If
-            ElseIf ExAPIC = True And ExGPIO = False And APICPIN = 0 Then
+            ElseIf ExAPIC = True And (APICPIN > 47 Or APICPIN = 0) Then
                 If InterruptEnabled = True Then
                     Console.WriteLine("Failed to extract APIC Pin, filled by system start up. Please input your APIC Pin in Hex")
                     Console.Write("APIC Pin: ")
@@ -312,12 +302,12 @@ Module GenI2C
                         If Hetero = True Then APICNAME = "SBFX"
                         PatchCRS2APIC()
                     Else
-                        GPIONAME = "SBFG"
-                        APIC2GPIO()
+                        GPIONAME = "SBFP"
+                        If ExGPIO = False Then APIC2GPIO()
                         PatchCRS2GPIO()
                     End If
                 ElseIf PollingEnabled = True Then
-                    Console.WriteLine("APIC Pin size uncertain, could be either APIC or polling")
+                    If APICPIN = 0 Then Console.WriteLine("APIC Pin size uncertain, could be either APIC or polling")
                     If Hetero = True Then APICNAME = "SBFX"
                     PatchCRS2APIC()
                 End If
@@ -346,12 +336,13 @@ Module GenI2C
                     If APICPIN >= 24 And APICPIN <= 47 Then
                         Console.WriteLine("APIC Pin value < 2F, Native APIC Supported, No _CRS Patch required")
                     Else
-                        GPIONAME = "SBFG"
+                        GPIONAME = "SBFP"
                         APIC2GPIO()
                         PatchCRS2GPIO()
                     End If
                 ElseIf PollingEnabled = True Then
                     APICNAME = "SBFI"
+                    APICPIN = 63
                     PatchCRS2APIC()
                 End If
             Else
@@ -444,7 +435,7 @@ Module GenI2C
 
     Sub GenGPIO()
         Try
-            ManualGPIO(0) = Spacing & "Name (SBFG, ResourceTemplate ()"
+            ManualGPIO(0) = Spacing & "Name (SBFP, ResourceTemplate ()"
             ManualGPIO(1) = Spacing & "{"
             ManualGPIO(2) = Spacing & "    GpioInt (Level, ActiveLow, Exclusive, PullUp, 0x0000,"
             ManualGPIO(3) = Spacing & "       " & Chr(34) & "\\ _SB.PCI0.GPI0," & Chr(34) & "0x00, ResourceConsumer, ,"
@@ -468,9 +459,7 @@ Module GenI2C
 
     Sub GenAPIC()
         Try
-            If (PollingEnabled = True And Hetero = True) Or ExAPIC = False Then
-                ManualAPIC(0) = Spacing & "Name (SBFX, ResourceTemplate ()"
-            ElseIf InterruptEnabled = True And Hetero = True Then
+            If (PollingEnabled = True And Hetero = True) Or ExAPIC = False Or (InterruptEnabled = True And Hetero = True) Then
                 ManualAPIC(0) = Spacing & "Name (SBFX, ResourceTemplate ()"
             Else
                 ManualAPIC(0) = Spacing & "Name (SBFI, ResourceTemplate ()"
