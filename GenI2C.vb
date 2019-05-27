@@ -278,7 +278,7 @@ Module GenI2C
                 End If
                 If PollingEnabled = True Then
                     APICPIN = 63
-                    APICNAME = "SBFI"
+                    APICNAME = "SBFX"
                     PatchCRS2APIC()
                 End If
             ElseIf ExAPIC = True And ExGPIO = False And APICPIN = 0 Then
@@ -288,7 +288,7 @@ Module GenI2C
                     APICPIN = Convert.ToInt32(Console.ReadLine(), 16)
                     While APICPIN < 24 Or APICPIN > 119
                         Console.WriteLine()
-                        Console.WriteLine("APICPIN out of range!")
+                        Console.WriteLine("APIC Pin out of range!")
                         Console.WriteLine("Select your choice:")
                         Console.WriteLine("1) Input again")
                         Console.WriteLine("2) Exit")
@@ -468,7 +468,7 @@ Module GenI2C
 
     Sub GenAPIC()
         Try
-            If PollingEnabled = True And Hetero = True Then
+            If (PollingEnabled = True And Hetero = True) Or ExAPIC = False Then
                 ManualAPIC(0) = Spacing & "Name (SBFX, ResourceTemplate ()"
             ElseIf InterruptEnabled = True And Hetero = True Then
                 ManualAPIC(0) = Spacing & "Name (SBFX, ResourceTemplate ()"
