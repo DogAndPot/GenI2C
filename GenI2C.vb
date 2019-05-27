@@ -341,7 +341,7 @@ Module GenI2C
                         PatchCRS2GPIO()
                     End If
                 ElseIf PollingEnabled = True Then
-                    APICNAME = "SBFI"
+                    APICNAME = "SBFX"
                     APICPIN = 63
                     PatchCRS2APIC()
                 End If
@@ -459,11 +459,7 @@ Module GenI2C
 
     Sub GenAPIC()
         Try
-            If (PollingEnabled = True And Hetero = True) Or ExAPIC = False Or (InterruptEnabled = True And Hetero = True) Then
-                ManualAPIC(0) = Spacing & "Name (SBFX, ResourceTemplate ()"
-            Else
-                ManualAPIC(0) = Spacing & "Name (SBFI, ResourceTemplate ()"
-            End If
+            ManualAPIC(0) = Spacing & "Name (SBFX, ResourceTemplate ()"
             ManualAPIC(1) = Spacing & "{"
             ManualAPIC(2) = Spacing & "    Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive, ,, )"
             ManualAPIC(3) = Spacing & "    {"
