@@ -165,7 +165,7 @@ Module GenI2C
                         ExGPIO = False
                         GPIONameLineFound = False
                     End If
-                    Console.WriteLine("Native GpioInt Found in " & TPAD & " at line " & i)
+                    Console.WriteLine("Native GpioInt Found in " & TPAD & " at line " & i + 1)
                     ExGPIO = True
                     GPIONAMELine = i
                     For GPIONAMELine = GPIONAMELine To 1 Step -1
@@ -180,7 +180,7 @@ Module GenI2C
                 End If
                 If InStr(Code(i), "Interrupt (ResourceConsumer") > 0 Then
                     If ExAPIC = True Then APICNameLineFound = False
-                    Console.WriteLine("Native APIC Found in " & TPAD & " at line " & i)
+                    Console.WriteLine("Native APIC Found in " & TPAD & " at line " & i + 1)
                     ExAPIC = True
                     APICNameLine = i
                     For APICNameLine = APICNameLine To 1 Step -1
@@ -195,7 +195,7 @@ Module GenI2C
                 End If
                 If InStr(Code(i), "I2cSerialBusV2 (0x") > 0 Then
                     If ExSLAV = True Then SLAVNameLineFound = False
-                    Console.WriteLine("Slave Address Found in " & TPAD & " at line " & i)
+                    Console.WriteLine("Slave Address Found in " & TPAD & " at line " & i + 1)
                     ExSLAV = True
                     SLAVNameLine = i
                     For SLAVNameLine = SLAVNameLine To 1 Step -1
@@ -206,7 +206,6 @@ Module GenI2C
                         End If
                     Next
                     ScopeLine = i + 1
-                    Console.WriteLine(Code(ScopeLine))
                     Scope = Code(ScopeLine).Substring((InStr(Code(ScopeLine), (Chr(34) & ",")) - 2), 1)
                 End If
                 If InStr(Code(i), "Name (") > 0 And CatchSpacing = False Then
@@ -596,4 +595,4 @@ Module GenI2C
 
         End If
     End Sub
-End Module' to do: SSCN FMCN, I2CM, Generate SSDT(DefinitionBlock)
+End Module' to do: Generate SSDT(DefinitionBlock)
