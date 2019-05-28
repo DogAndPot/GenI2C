@@ -2,14 +2,14 @@
 Imports System.Text
 Module GenI2C
 
-    Public TPAD, Device, DSDTFile, Paranthesesopen, Paranthesesclose, DSDTLine, Spacing, APICNAME, SLAVName, GPIONAME As String
-    Dim Code(), ManualGPIO(8), ManualAPIC(6) As String
+    Public TPAD, Device, DSDTFile, Paranthesesopen, Paranthesesclose, DSDTLine, Scope, Spacing, APICNAME, SLAVName, GPIONAME As String
+    Dim Code(), ManualGPIO(8), ManualAPIC(6), ManualSPED(0) As String
     Public Matched, CRSPatched, ExUSTP, ExSSCN, ExFMCN, ExAPIC, ExSLAV, ExGPIO, CatchSpacing, APICNameLineFound, SLAVNameLineFound, GPIONameLineFound, InterruptEnabled, PollingEnabled, Hetero As Boolean
-    Public line, i, total, APICPinLine, GPIOPinLine, APICPIN, GPIOPIN, GPIOPIN2, APICNameLine, SLAVNameLine, GPIONAMELine, CheckConbLine As Integer
+    Public line, i, total, APICPinLine, GPIOPinLine, ScopeLine, APICPIN, GPIOPIN, GPIOPIN2, APICNameLine, SLAVNameLine, GPIONAMELine, CheckConbLine As Integer
 
     Sub Main()
         Try
-            Console.WriteLine("")
+            Console.WriteLine()
             Console.WriteLine("         _              _            _              _        _                _      ")
             Console.WriteLine("        /\ \           /\ \         /\ \     _     /\ \    /\ \             /\ \     ")
             Console.WriteLine("       /  \ \         /  \ \       /  \ \   /\_\   \ \ \  /  \ \           /  \ \    ")
@@ -22,7 +22,7 @@ Module GenI2C
             Console.WriteLine("/ / /______\/ // / /_______\/ / /    / / //\__\/_/___\   / /_____/ // / /_________\  ")
             Console.WriteLine("\/___________/ \/__________/\/_/     \/_/ \/_________/   \________/ \/____________/  ")
             'http://patorjk.com Impossible
-            Console.WriteLine("")
+            Console.WriteLine()
             While True
                 Console.Write("File Path (Drag and Drop the dsl file into the Form) : ")
                 DSDTFile = Console.ReadLine()
@@ -85,17 +85,14 @@ Module GenI2C
                 If InStr(DSDTLine, "If (USTP)") > 0 Then
                     Console.WriteLine("Found for USTP in DSDT at line " & line)
                     ExUSTP = True
-                    'Else
                 End If
                 If InStr(DSDTLine, "SSCN") > 0 Then
                     Console.WriteLine("Found for SSCN in DSDT at line " & line)
                     ExSSCN = True
-                    'Else
                 End If
                 If InStr(DSDTLine, "FMCN") > 0 Then
                     Console.WriteLine("Found for FMCN in DSDT at line " & line)
                     ExFMCN = True
-                    'Else
                 End If
                 If InStr(DSDTLine, Device) > 0 Then
                     Dim spaceopen, spaceclose, startline As Integer
@@ -208,6 +205,9 @@ Module GenI2C
                             CheckConbLine = SLAVNameLine
                         End If
                     Next
+                    ScopeLine = i + 1
+                    Console.WriteLine(Code(ScopeLine))
+                    Scope = Code(ScopeLine).Substring((InStr(Code(ScopeLine), (Chr(34) & ",")) - 2), 1)
                 End If
                 If InStr(Code(i), "Name (") > 0 And CatchSpacing = False Then
                     Spacing = Code(i).Substring(0, InStr(Code(i), "Name (") - 1)
@@ -251,7 +251,7 @@ Module GenI2C
             If ExAPIC = True And ExGPIO = False And APICPIN > 47 Then
                 If InterruptEnabled = True Then
                     Console.WriteLine("No native GpioInt found, Generating instead")
-                    GPIONAME = "SBFP"
+                    GPIONAME = "SBFZ"
                     APIC2GPIO()
                     PatchCRS2GPIO()
                 ElseIf PollingEnabled = True Then
@@ -302,8 +302,10 @@ Module GenI2C
                         If Hetero = True Then APICNAME = "SBFX"
                         PatchCRS2APIC()
                     Else
-                        GPIONAME = "SBFP"
-                        If ExGPIO = False Then APIC2GPIO()
+                        If ExGPIO = False Then
+                            GPIONAME = "SBFZ"
+                            APIC2GPIO()
+                        End If
                         PatchCRS2GPIO()
                     End If
                 ElseIf PollingEnabled = True Then
@@ -336,7 +338,7 @@ Module GenI2C
                     If APICPIN >= 24 And APICPIN <= 47 Then
                         Console.WriteLine("APIC Pin value < 2F, Native APIC Supported, No _CRS Patch required")
                     Else
-                        GPIONAME = "SBFP"
+                        GPIONAME = "SBFZ"
                         APIC2GPIO()
                         PatchCRS2GPIO()
                     End If
@@ -435,7 +437,7 @@ Module GenI2C
 
     Sub GenGPIO()
         Try
-            ManualGPIO(0) = Spacing & "Name (SBFP, ResourceTemplate ()"
+            ManualGPIO(0) = Spacing & "Name (SBFZ, ResourceTemplate ()"
             ManualGPIO(1) = Spacing & "{"
             ManualGPIO(2) = Spacing & "    GpioInt (Level, ActiveLow, Exclusive, PullUp, 0x0000,"
             ManualGPIO(3) = Spacing & "       " & Chr(34) & "\\ _SB.PCI0.GPI0," & Chr(34) & "0x00, ResourceConsumer, ,"
@@ -485,17 +487,31 @@ Module GenI2C
             Console.WriteLine()
             Console.WriteLine("*****************************************************")
             Console.WriteLine()
+            If ExUSTP = True Then
+                Console.WriteLine("    Name (USTP, One)")
+            End If
+            Console.WriteLine()
+            Console.WriteLine("    Scope(_SB.PCI0.I2C" & Scope & ")")
+            Console.WriteLine("    {")
+            If ExUSTP = False Then
+                GenSPED()
+                For GenIndex = 0 To ManualSPED.Length - 1
+                    Console.WriteLine(ManualSPED(GenIndex))
+                Next
+                Console.WriteLine()
+                GenIndex = 0
+            End If
             Console.WriteLine(Code(0))
             Console.WriteLine(Code(1))
             If InterruptEnabled = True And ExGPIO = False And APICPIN > 47 Then
                 GenGPIO()
-                For GenIndex = 0 To 8
+                For GenIndex = 0 To ManualGPIO.Length - 1
                     Console.WriteLine(ManualGPIO(GenIndex))
                 Next
             End If
             If (PollingEnabled = True And ExAPIC = False) Or Hetero = True Then
                 GenAPIC()
-                For GenIndex = 0 To 6
+                For GenIndex = 0 To ManualAPIC.Length - 1
                     Console.WriteLine(ManualAPIC(GenIndex))
                 Next
             End If
@@ -504,6 +520,7 @@ Module GenI2C
                 'fs.Write(info, 0, info.Length)
                 Console.WriteLine(Code(i))
             Next
+            Console.WriteLine("    }")
             Console.WriteLine()
             Console.WriteLine("*****************************************************")
             Console.WriteLine()
@@ -536,5 +553,47 @@ Module GenI2C
             Console.ReadLine()
             End
         End Try
+    End Sub
+
+    Sub GenSPED()
+        If ExUSTP = False And ExSSCN = False And ExFMCN = True Then
+            If Scope = 0 Then
+                ManualSPED(0) = Spacing & "Name (SSCN, Package () { 432, 507, 30 })"
+            ElseIf Scope = 1 Then
+                ManualSPED(0) = Spacing & "Name (SSCN, Package () { 528, 640, 30 })"
+            ElseIf Scope = 2 Then
+                ManualSPED(0) = Spacing & "Name (SSCN, Package () { 432, 507, 30 })"
+            ElseIf Scope = 3 Then
+                ManualSPED(0) = Spacing & "Name (SSCN, Package () { 432, 507, 30 })"
+            End If
+        ElseIf ExUSTP = False And ExSSCN = True And ExFMCN = False Then
+            If Scope = 0 Then
+                ManualSPED(0) = Spacing & "Name (FMCN, Package () { 72, 160, 30 })"
+            ElseIf Scope = 1 Then
+                ManualSPED(0) = Spacing & "Name (FMCN, Package () { 128, 160, 30 })"
+            ElseIf Scope = 2 Then
+                ManualSPED(0) = Spacing & "Name (FMCN, Package () { 72, 160, 30 })"
+            ElseIf Scope = 3 Then
+                ManualSPED(0) = Spacing & "Name (FMCN, Package () { 72, 160, 30 })"
+            End If
+        ElseIf ExUSTP = False And ExSSCN = False And ExFMCN = False Then
+            ReDim ManualSPED(1)
+            If Scope = 0 Then
+                ManualSPED(0) = Spacing & "Name (SSCN, Package () { 432, 507, 30 })"
+                ManualSPED(1) = Spacing & "Name (FMCN, Package () { 72, 160, 30 })"
+            ElseIf Scope = 1 Then
+                ManualSPED(0) = Spacing & "Name (SSCN, Package () { 528, 640, 30 })"
+                ManualSPED(1) = Spacing & "Name (FMCN, Package () { 128, 160, 30 })"
+            ElseIf Scope = 2 Then
+                ManualSPED(0) = Spacing & "Name (SSCN, Package () { 432, 507, 30 })"
+                ManualSPED(1) = Spacing & "Name (FMCN, Package () { 72, 160, 30 })"
+            ElseIf Scope = 3 Then
+                ManualSPED(0) = Spacing & "Name (SSCN, Package () { 432, 507, 30 })"
+                ManualSPED(1) = Spacing & "Name (FMCN, Package () { 72, 160, 30 })"
+            End If
+
+            'Console.WriteLine(ManualSPED.Length)
+
+        End If
     End Sub
 End Module' to do: SSCN FMCN, I2CM, Generate SSDT(DefinitionBlock)
