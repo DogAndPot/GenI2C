@@ -29,7 +29,8 @@ An Automatic tool to get your DSDT ready for VoodooI2C
 | Native Combined APIC + Native GPIO  | Unknown  | =                                                                                      | Yes (Will fall back to APIC interrupt if possible, depends on system filling) |
 | Native APIC + No GPIO               | =        | Yes (Will ask to provide Pin, APIC & GPIO)                                             | =                                                                             |
 | Native Combined APIC + NO GPIO      | =        | =                                                                                      | =                                                                             |
-| Native APIC + Native GPIO           | =        | =                                                                                      | Yes                                                                           |
+| Native APIC + Native GPIO           | =        | =                                                                                      | =                                                                             |
+`* "=" means same as above`
 
 ## To do
 
